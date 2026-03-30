@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cade Meu Diploma? - Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 300px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    p {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    button {
+      padding: 12px 20px;
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #357ae8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📜 Cade Meu Diploma?</h1>
+    <p>Pressione seu diploma automaticamente</p>
+    <button onclick="loginWithGoogle()">Logar com Google</button>
+  </div>
+
+  <script>
+    function loginWithGoogle() {
+      window.location.href = '/auth';
+    }
+
+    // Verificar se já está autenticado
+    fetch('/status')
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated) {
+          window.location.href = '/dashboard.html';
+        }
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>

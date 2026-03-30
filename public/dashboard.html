@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cade Meu Diploma? - Enviar Emails</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      flex: 1;
+      margin: 0;
+    }
+    .logout-btn {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .logout-btn:hover {
+      background-color: #da190b;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: bold;
+    }
+    input {
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+    }
+    button {
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #status {
+      margin-top: 15px;
+      padding: 10px;
+      text-align: center;
+      color: #333;
+      border-radius: 4px;
+      display: none;
+    }
+    #status.success {
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      display: block;
+    }
+    #status.error {
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      display: block;
+    }
+    #stopBtn {
+      background-color: #f44336;
+      margin-top: 10px;
+      display: none;
+    }
+    #stopBtn:hover {
+      background-color: #da190b;
+    }
+    .user-info {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 20px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📧 Enviar Emails</h1>
+      <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+    
+    <div class="user-info" id="userInfo">Carregando...</div>
+    
+    <form id="form">
+      <label for="tempo">Intervalo entre emails (minutos):</label>
+      <input type="number" id="tempo" min="1" value="60" required>
+
+      <label for="nome">Seu Nome Completo:</label>
+      <input type="text" id="nome" placeholder="Ex: Joao Silva" required>
+
+      <label for="destino">Destino (email do responsável):</label>
+      <input type="email" id="destino" placeholder="Ex: secretaria@universidade.com" required>
+
+      <button type="submit">Iniciar Envio de Emails</button>
+    </form>
+    
+    <div id="status"></div>
+    <button id="stopBtn">Parar Envio</button>
+  </div>
+
+  <script>
+    // Verificar autenticacao
+    fetch('/status')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.authenticated) {
+          window.location.href = '/login.html';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/login.html';
+      });
+
+    const form = document.getElementById('form');
+    const statusDiv = document.getElementById('status');
+    const stopBtn = document.getElementById('stopBtn');
+    const userInfo = document.getElementById('userInfo');
+
+    // Obter email do usuario
+    fetch('/profile')
+      .then(res => res.json())
+      .then(data => {
+        if (data.email) {
+          userInfo.textContent = 'Autenticado como: ' + data.email;
+        }
+      })
+      .catch(err => {
+        userInfo.textContent = 'Erro ao carregar informacoes';
+        window.location.href = '/login.html';
+      });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const tempo = document.getElementById('tempo').value;
+      const nome = document.getElementById('nome').value;
+      const destino = document.getElementById('destino').value;
+
+      try {
+        const response = await fetch('/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tempo, nome, destino })
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+          statusDiv.textContent = data.message;
+          statusDiv.classList.remove('error');
+          statusDiv.classList.add('success');
+          stopBtn.style.display = 'block';
+          form.style.display = 'none';
+        } else {
+          statusDiv.textContent = data.error;
+          statusDiv.classList.remove('success');
+          statusDiv.classList.add('error');
+        }
+      } catch (error) {
+        statusDiv.textContent = 'Erro ao iniciar: ' + error.message;
+        statusDiv.classList.remove('success');
+        statusDiv.classList.add('error');
+      }
+    });
+
+    stopBtn.addEventListener('click', async () => {
+      try {
+        const response = await fetch('/stop', { method: 'POST' });
+        const data = await response.json();
+        statusDiv.textContent = data.message;
+        stopBtn.style.display = 'none';
+        form.style.display = 'flex';
+      } catch (error) {
+        statusDiv.textContent = 'Erro ao parar: ' + error.message;
+      }
+    });
+
+    function logout() {
+      if (confirm('Tem certeza que deseja sair?')) {
+        fetch('/logout', { method: 'POST' }).then(() => {
+          window.location.href = '/login.html';
+        });
+      }
+    }
+  </script>
+</body>
+</html>
