@@ -26,3 +26,6 @@ Para usar autenticação via Google (mais segura e sem precisar de App Password)
 8. Clique em "Parar Envio" para interromper.
 
 **Nota:** Substitua o email destinatário no código (server.js) pelo email correto da unidade responsável.
+
+
+[cademeudiploma](https://cademeudiploma.fernandoofilho.dev/login.html)
